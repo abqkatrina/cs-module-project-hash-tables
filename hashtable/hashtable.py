@@ -21,7 +21,9 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
+        self.capacity = capacity
+        self.data = [none] * self.capacity
+        self.items = 0
 
 
     def get_num_slots(self):
@@ -34,7 +36,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        return self.capacity
 
 
     def get_load_factor(self):
@@ -43,7 +45,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        return self.items/self.capacity
 
 
     def fnv1(self, key):
@@ -81,7 +83,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+       
 
 
     def delete(self, key):
@@ -92,7 +94,10 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        if key:
+            del key
+        else:
+            print('key not found')
 
 
     def get(self, key):
@@ -103,7 +108,20 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        i = self.hash_index(key)
+
+        if self.hash_index[i] is None:
+            return None
+        else:
+            cur = self.data[i]
+
+            while cur:
+                if cur.key === key:
+                    return cur.value
+
+                cur = cur.next
+
+            return None
 
 
     def resize(self, new_capacity):
@@ -113,7 +131,21 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # save old info
+        old_list = self.data
+        # redifine size of list with new
+        self.data = [None] * new_capacity
+        self.capacity = new_capacity
+        # iterate through data for rehashing
+        for i in old_list:
+            # for each non-None bucket...
+            while i:
+                key = i.key
+                value = i.value
+                self.put(key, value)
+                # got to next bucket
+                i = i.next
+
 
 
 
