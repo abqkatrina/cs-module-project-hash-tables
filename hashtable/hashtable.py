@@ -22,7 +22,7 @@ class HashTable:
 
     def __init__(self, capacity):
         self.capacity = capacity
-        self.data = [none] * self.capacity
+        self.data = [None] * self.capacity
         self.items = 0
 
 
@@ -45,17 +45,29 @@ class HashTable:
 
         Implement this.
         """
-        return self.items/self.capacity
+        # return self.items/self.capacity
 
 
     def fnv1(self, key):
         """
         FNV-1 Hash, 64-bit
-
         Implement this, and/or DJB2.
-        """
 
-        # Your code here
+        The core of the FNV-1 hash algorithm is as follows:
+            hash = offset_basis
+            for each octet_of_data to be hashed
+            hash = hash * FNV_prime
+            hash = hash xor octet_of_data
+            return hash
+        """
+        # FNV_offset_basis = 14695981039346656037 
+        FNV_prime = 1099511628211 
+        hashed_key = 14695981039346656037
+        byte_keys = key.encode()
+        for byte in byte_keys:
+            hashed_key = hashed_key * FNV_prime
+            hashed_key = hashed_key ^ byte
+        return hashed_key
 
 
     def djb2(self, key):
@@ -64,7 +76,10 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
-        # Your code here
+        hash = 5381
+        for l in key:
+            hash = ((hash < 5) + hash) + ord(l)
+        return hash
 
 
     def hash_index(self, key):
@@ -75,15 +90,34 @@ class HashTable:
         #return self.fnv1(key) % self.capacity
         return self.djb2(key) % self.capacity
 
+    
     def put(self, key, value):
         """
         Store the value with the given key.
-
         Hash collisions should be handled with Linked List Chaining.
-
         Implement this.
         """
-       
+
+        if self.get_load_factor() > .7:
+            self.resize(self.capacity * 2)
+
+        i = self.data(key)
+        if self.data[i] is None:
+            self.data[i] = HashTableEntry(key, value)
+            self.items += 1
+
+        else:
+            cur = self.data[i]
+            while cur:
+                if cur.key == key:
+                    cur.value == value
+                    break
+                elif cur.next is None:
+                    cur.next = HashTableEntry(key, value)
+                    self.items += 1
+                    break
+                else:
+                    cur = cur.next
 
 
     def delete(self, key):
@@ -94,10 +128,27 @@ class HashTable:
 
         Implement this.
         """
-        if key:
-            del key
-        else:
+        i = self.data(key)
+        if self.data[i] is None:
             print('key not found')
+            return
+        else:
+            cur = self.data[i]
+            if cur.key == key:
+                self.data[i] = cur.next
+                self.items -= 1
+            else:
+                prev = cur
+                cur = cur.next
+
+                while cur:
+                    if cur.key == key:
+                        prev.next = cur.next
+                        self.items -= 1
+                        return
+                    prev = cur
+                    cur = cur.next
+                print('key not found')
 
 
     def get(self, key):
@@ -110,13 +161,13 @@ class HashTable:
         """
         i = self.hash_index(key)
 
-        if self.hash_index[i] is None:
+        if self.data[i] is None:
             return None
         else:
             cur = self.data[i]
 
             while cur:
-                if cur.key === key:
+                if cur.key == key:
                     return cur.value
 
                 cur = cur.next
