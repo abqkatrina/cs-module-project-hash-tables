@@ -45,7 +45,7 @@ class HashTable:
 
         Implement this.
         """
-        # return self.items/self.capacity
+        return self.items/self.capacity
 
 
     def fnv1(self, key):
@@ -98,24 +98,26 @@ class HashTable:
         Implement this.
         """
 
-        if self.get_load_factor() > .7:
-            self.resize(self.capacity * 2)
+        i = self.hash_index(key)
 
-        i = self.data(key)
+        # if list is empty, add entry to list and add 1 to count
         if self.data[i] is None:
             self.data[i] = HashTableEntry(key, value)
             self.items += 1
+            return
 
         else:
             cur = self.data[i]
+            #if the list is not empty...
             while cur:
+                # if key already exists, replace value
                 if cur.key == key:
                     cur.value == value
-                    break
+                # if the key doesn't exist and we're at the end of the list, add the entry
                 elif cur.next is None:
                     cur.next = HashTableEntry(key, value)
                     self.items += 1
-                    break
+                #if the key doesn't exist and we're not at the end, check the next item
                 else:
                     cur = cur.next
 
@@ -128,27 +130,34 @@ class HashTable:
 
         Implement this.
         """
-        i = self.data(key)
-        if self.data[i] is None:
+        i = self.hash_index(key)
+        # if the key isn't found, print error
+        if self.data[i].key is None:
             print('key not found')
             return
+        # if the key is found...
         else:
+            # current item is current item
             cur = self.data[i]
+            # if current item is the key
+            # replace that item with the next item and subtract 1 from count
             if cur.key == key:
                 self.data[i] = cur.next
                 self.items -= 1
             else:
+            # if current item is not the key
                 prev = cur
                 cur = cur.next
-
+                # move down the list -- previous <-- current <-- next 
                 while cur:
+                    # while the new current exists, if it's the key
+                    #  previous -- Xcurrent/previous.nextX <-- next 
                     if cur.key == key:
                         prev.next = cur.next
                         self.items -= 1
                         return
-                    prev = cur
-                    cur = cur.next
-                print('key not found')
+                
+                
 
 
     def get(self, key):
@@ -160,18 +169,22 @@ class HashTable:
         Implement this.
         """
         i = self.hash_index(key)
-
-        if self.data[i] is None:
+        cur = self.data[i]
+        
+        # if the list is empty, return none
+        if cur is None:
             return None
+        # if the list exists...
         else:
-            cur = self.data[i]
-
-            while cur:
+            # if the current item is the key, return the value
+            if cur.key == key:
+                return cur.value
+            # if current item isn't key, check next item (if it exists)
+            while cur.next:
+                cur = cur.next
                 if cur.key == key:
                     return cur.value
-
-                cur = cur.next
-
+            # if the current item and next item(s) are not key, return none
             return None
 
 
