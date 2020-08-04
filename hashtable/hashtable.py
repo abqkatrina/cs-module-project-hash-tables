@@ -10,7 +10,9 @@ class HashTableEntry:
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
-
+class LL:
+    def __init__(self):
+        self.head = None
 
 class HashTable:
     """
@@ -22,7 +24,7 @@ class HashTable:
 
     def __init__(self, capacity):
         self.capacity = capacity
-        self.data = [None] * self.capacity
+        self.data = [LL()] * capacity
         self.items = 0
 
 
@@ -36,7 +38,7 @@ class HashTable:
 
         Implement this.
         """
-        return self.capacity
+        return len(self.data)
 
 
     def get_load_factor(self):
@@ -45,21 +47,38 @@ class HashTable:
 
         Implement this.
         """
-        return self.items/self.capacity
+        # find load factor
+        lf =  self.items/self.capacity
 
+        # STRETCH if lf is less than .2, make cap 1/2 cap with 8 minimum slots
+        if lf < .2:
+            if self.capacity/2 >= 8:
+                self.capacity = self.capacity/2
+                return lf
+            # if 1/2 cap is less than 8, don't change
+            else:
+                return lf
+        #STRETCH if lf is greater than .7, make cap 2cap
+        elif lf > .7:
+            self.capacity = self.capacity*2
+            return lf
+        #if lf is between .2 and .7, return lf
+        return lf
 
+        
     def fnv1(self, key):
         """
         FNV-1 Hash, 64-bit
         Implement this, and/or DJB2.
-
-        The core of the FNV-1 hash algorithm is as follows:
-            hash = offset_basis
-            for each octet_of_data to be hashed
-            hash = hash * FNV_prime
-            hash = hash xor octet_of_data
-            return hash
         """
+        
+            # The core of the FNV-1 hash algorithm is as follows:
+            # hash = offset_basis
+            # for each octet_of_data to be hashed
+            # hash = hash * FNV_prime
+            # hash = hash xor octet_of_data
+            # return hash
+        
         # FNV_offset_basis = 14695981039346656037 
         FNV_prime = 1099511628211 
         hashed_key = 14695981039346656037
@@ -76,10 +95,11 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
-        hash = 5381
-        for l in key:
-            hash = ((hash < 5) + hash) + ord(l)
-        return hash
+        hash_var = 5381
+        byte_keys = key.encode()
+        for b in byte_keys:
+            hash_var = ((hash_var < 5) + hash_var) + b
+        return hash_var
 
 
     def hash_index(self, key):
@@ -99,27 +119,19 @@ class HashTable:
         """
 
         i = self.hash_index(key)
-
-        # if list is empty, add entry to list and add 1 to count
-        if self.data[i] is None:
-            self.data[i] = HashTableEntry(key, value)
+   
+        if self.data[i].head == None:
+            self.data[i].head = HashTableEntry(key, value)
             self.items += 1
             return
-
-        else:
-            cur = self.data[i]
-            #if the list is not empty...
-            while cur:
-                # if key already exists, replace value
+        else: 
+            cur = self.data[i].head
+            while cur.next:
                 if cur.key == key:
-                    cur.value == value
-                # if the key doesn't exist and we're at the end of the list, add the entry
-                elif cur.next is None:
-                    cur.next = HashTableEntry(key, value)
-                    self.items += 1
-                #if the key doesn't exist and we're not at the end, check the next item
-                else:
-                    cur = cur.next
+                    cur.value = value
+                cur = cur.next
+            cur.next = HashTableEntry(key, value)
+            self.items += 1
 
 
     def delete(self, key):
@@ -131,31 +143,20 @@ class HashTable:
         Implement this.
         """
         i = self.hash_index(key)
-        # if the key isn't found, print error
-        if self.data[i].key is None:
-            print('key not found')
+        cur = self.data[i].head
+
+        if cur.key == key:
+            self.data[i].head = self.data[i].head.next
+            self.items -= 1
             return
-        # if the key is found...
-        else:
-            # current item is current item
-            cur = self.data[i]
-            # if current item is the key
-            # replace that item with the next item and subtract 1 from count
+
+        while cur.next:
+            prev = cur
+            cur = cur.next
             if cur.key == key:
-                self.data[i] = cur.next
+                prev.next = cur.next
                 self.items -= 1
-            else:
-            # if current item is not the key
-                prev = cur
-                cur = cur.next
-                # move down the list -- previous <-- current <-- next 
-                while cur:
-                    # while the new current exists, if it's the key
-                    #  previous -- Xcurrent/previous.nextX <-- next 
-                    if cur.key == key:
-                        prev.next = cur.next
-                        self.items -= 1
-                        return
+                return None
                 
                 
 
@@ -169,7 +170,7 @@ class HashTable:
         Implement this.
         """
         i = self.hash_index(key)
-        cur = self.data[i]
+        cur = self.data[i].head
         
         # if the list is empty, return none
         if cur is None:
@@ -195,20 +196,27 @@ class HashTable:
 
         Implement this.
         """
-        # save old info
-        old_list = self.data
-        # redifine size of list with new
-        self.data = [None] * new_capacity
+
+        if new_capacity < 8:
+            return('no can do')
+       
         self.capacity = new_capacity
-        # iterate through data for rehashing
-        for i in old_list:
-            # for each non-None bucket...
-            while i:
-                key = i.key
-                value = i.value
-                self.put(key, value)
-                # got to next bucket
-                i = i.next
+        new_array = [LL()] * new_capacity
+
+        for item in self.data:
+            cur = item.head
+
+            while cur:
+                i = self.hash_index(cur.key)
+
+                if new_array[i].head == None:
+                    new_array[i].head = HashTableEntry(cur.key, cur.value)
+                else:
+                    node = HashTableEntry(cur.key, cur.value)
+                    node.next = new_array[i].head
+                    new_array[i].head = node
+                cur = cur.next
+            self.data = new_array
 
 
 
