@@ -1,5 +1,13 @@
 def no_dups(s):
-    # Your code here
+    words = []
+
+    split = s.split()
+
+    for i in split:
+        if i not in words:
+            words.append(i)
+
+    return ' '.join(words)
 
 
 
